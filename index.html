@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Simon Dice</title>
+  <style>
+    * {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #dedede;
+      display: flex;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .gameboard {
+      height: 100vh;
+      width: 100vh;
+      border-radius: 50%;
+      overflow: hidden;
+      margin: 0 auto;
+      max-height: 60vh;
+      max-width: 60vh;
+    }
+
+    .color {
+      width: 50%;
+      height: 50%;
+      display: inline-block;
+    }
+
+    .left {
+      float: left;
+    }
+
+    .right {
+      float: left;
+    }
+
+    .celeste {
+      background: #22a6b3;
+    }
+
+    .celeste.light {
+      background: #7ed6df;
+    }
+
+    .violeta {
+      background: #be2edd;
+    }
+
+    .violeta.light {
+      background: #e056fd;
+    }
+
+    .naranja {
+      background: #f0932b;
+    }
+
+    .naranja.light {
+      background: #ffbe76;
+    }
+
+    .verde {
+      background: #6ab04c;
+    }
+
+    .verde.light {
+      background: #badc58;
+    }
+
+    .btn-start {
+      width: 400px;
+      height: 100px;
+      background: #ecf0f1;
+      color: #2c3e50;
+      font-size: 2.5rem;
+      position: absolute;
+      top: calc(50% - 50px);
+      left: calc(50% - 200px);
+    }
+
+    .hide {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="gameboard">
+
+    <div id="celeste" class="color celeste left" data-color="celeste"></div>
+    <div id="violeta" class="color violeta right" data-color="violeta"></div>
+    <div id="naranja" class="color naranja left" data-color="naranja"></div>
+    <div id="verde" class="color verde right" data-color="verde"></div>
+    <button id="btnEmpezar" class="btn-start" onclick="empezarJuego()">Empezar a jugar!</button>
+  </div>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <script>
+    // lo mismo sucede con los colores para poder acceder a ellos
+    const celeste = document.getElementById('celeste')
+    const violeta = document.getElementById('violeta')
+    const naranja = document.getElementById('naranja')
+    const verde = document.getElementById('verde')
+    //ponemos en una variable el boton empezar mediante su id de la siguente forma
+    const btnEmpezar = document.getElementById('btnEmpezar')
+    const ULTIMO_NIVEL = 1
+
+    //tendra toda la logica del juego
+    class Juego {
+      constructor() {
+        this.inicializar()
+        this.generarSecuencia()
+        setTimeout(this.siguienteNivel, 500)
+      }
+      //aqui el 1° paso es ocultar el boton de la siguente manera
+      inicializar() {
+        //Se atan los bind
+        this.siguienteNivel = this.siguienteNivel.bind(this)
+        this.elegirColor = this.elegirColor = this.elegirColor.bind(this)
+        this.inicializar.bind(this)
+        this.toogleBtnEmpezar()
+        this.nivel = 1
+        this.colores = {
+          //Forma corta para definir un objero. Con repetir el nombre 
+          //de una variable global ya declarada basta. Se deben separa por comas
+          celeste,
+          violeta,
+          naranja,
+          verde
+          /*forma clasica
+           celeste: celeste,
+           violeta : violeta,
+           naranja : naranja,
+           verde : verde
+           */
+        }
+      }
+      // escribimos el toogle btnempezar
+      toogleBtnEmpezar(){
+        if (btnEmpezar.classList.contains('hide')){
+          btnEmpezar.classList.remove('hide')
+        } else {
+          btnEmpezar.classList.add('hide')
+        }
+      }
+      //Funcion que genera una nueva secuencia en un array
+      generarSecuencia() {
+        //Esta secuencia se liga al objeto por eso usamos this
+        //new Array se declara un nuevo arreglo de 10 posiciones
+        //Array(n) define un array vacio con un numero n fijo de posiciones
+        //fill(x) llena un array o una matriz con valores x en todas sus posiciones
+        //.map() recorre cada valor del arreglo y remplaza los valores de un array según la logica que se defina en su función
+        //Math.floor() redondea un numero a su valor entero mas bajo P.e. 3.9 sera 3
+        //Math.random() genera valores de dos cifras decimales entre 0 y 1
+        this.secuencia = new Array(ULTIMO_NIVEL).fill(0).map(n => Math.floor(Math.random() * 4))
+      }
+      siguienteNivel() {
+        this.subnivel = 0
+        this.iluminarSecuencia()
+        this.agregarEventosCLick()
+      }
+
+      transformarNumeroAColor(numero) {
+        switch (numero) {
+          case 0:
+            return 'celeste'
+          case 1:
+            return 'violeta'
+          case 2:
+            return 'naranja'
+          case 3:
+            return 'verde'
+        }
+      }
+      //switch que se encarga de transformar un color a nimero
+      transformarColoraNumero(color) {
+        switch (color) {
+          case 'celeste':
+            return 0
+          case 'violeta':
+            return 1
+          case 'naranja':
+            return 2
+          case 'verde':
+            return 3
+        }
+      }
+
+      iluminarSecuencia() {
+        // let mantiene la variable a diferencia de var que siempre pisa la misma variable, usar siempre conts antes que let y usar siepre let antes de var.
+        for (let i = 0; i < this.nivel; i++) {
+          const color = this.transformarNumeroAColor(this.secuencia[i])
+          setTimeout(() => this.iluminarColor(color), 1000 * i)
+        }
+      }
+
+      iluminarColor(color) {
+        this.colores[color].classList.add('light')
+        setTimeout(() => this.apagarColor(color), 350)
+      }
+
+      apagarColor(color) {
+        this.colores[color].classList.remove('light')
+      }
+      //este metodo va agregar a cada uno de los colores el evento click y decirle al navegador que función tiene que ejecutar cuando se realice ese metodo
+      // menejador del evento y el evento : addEventListener('click')
+      agregarEventosCLick() {
+        //para que no pierda el quien es el this y se ata a la varable en inicializar() quedando asi: this.elegirColor = this.elegirColor.bind(this) y por ende borramos aquí bind(this) en cada color
+        this.colores.celeste.addEventListener('click', this.elegirColor)
+        this.colores.verde.addEventListener('click', this.elegirColor)
+        this.colores.violeta.addEventListener('click', this.elegirColor)
+        this.colores.naranja.addEventListener('click', this.elegirColor)
+      }
+      eliminarEventosClick(){
+        this.colores.celeste.removeEventListener('click', this.elegirColor)
+        this.colores.verde.removeEventListener('click', this.elegirColor)
+        this.colores.violeta.removeEventListener('click', this.elegirColor)
+        this.colores.naranja.removeEventListener('click', this.elegirColor)
+      }
+      //cuando el navegador llama a un evento por lo regular se llaman ev
+
+      elegirColor(ev) {
+        //console.log(ev)
+        // Ahora obtenermos el color
+        const nombreColor = ev.target.dataset.color
+        const numeroColor = this.transformarColoraNumero(nombreColor)
+        this.iluminarColor(nombreColor)
+        if (numeroColor === this.secuencia[this.subnivel]) {
+          this.subnivel++
+          if (this.subnivel === this.nivel) {
+            this.nivel++
+           this.eliminarEventosClick()
+           if (this.nivel === (ULTIMO_NIVEL+1)){
+             this.ganoElJuego()
+           } else {
+            setTimeout(this.siguienteNivel, 1300)
+           }
+          }
+        } else {
+          this.perdioElJuego()
+        }
+      }
+      ganoElJuego(){
+        swal('nthx15', '¡Felicidades, Ganaste el Juego!', 'success')
+        //como swal retorna una promesa pues eliminamos los eventos del click y va a inicializar el juego nuevamente al momento de cerrar el swal, pero en arriba elegir color teniamos eliminado los eventos del click asi que no hace falta ponerlo aquí
+        .then(this.inicializar())
+      }
+      perdioElJuego(){
+        //como swal retorna una promesa pues eliminamos los eventos del click y va a inicializar el juego nuevamente al momento de cerrar el swal
+        swal('nthx15', '¡Perdiste, no te rindas!', 'error')
+        this.eliminarEventosClick()
+        this.inicializar()
+      }
+    }
+
+    //inicializa el juego
+    function empezarJuego() {
+      var juego = new Juego()
+    }
+  </script>
+</body>
+
+</html>
